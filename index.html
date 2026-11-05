@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>XANH24 Maps for Life - Offline Demo</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f4f7f4;color:#20372c}
+header{background:#fff;padding:17px 22px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e1e9e2}
+.logo{font-size:22px;font-weight:800;color:#168557}
+.tag{font-size:11px;background:#fff0d8;color:#965100;padding:7px 10px;border-radius:20px}
+main{max-width:1050px;margin:auto;padding:20px 18px 90px}
+.hero{background:linear-gradient(115deg,#158357,#31b783);border-radius:22px;color:white;padding:28px;margin-bottom:18px}
+.hero h1{font-size:29px;margin:9px 0}
+.hero p{opacity:.92;line-height:1.6}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;padding:12px 16px;background:#168557;color:white}
+button.secondary{background:#fff0db;color:#a65b00}
+button.light{background:#eef6f0;color:#17754e}
+.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin:16px 0}
+input{border:1px solid #d5e0d7;border-radius:12px;padding:13px;font-size:15px;flex:1;min-width:180px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(225px,1fr));gap:14px}
+.card{background:#fff;border:1px solid #e5ebe5;border-radius:18px;padding:17px;box-shadow:0 2px 7px #152b1910}
+.illustration{height:100px;border-radius:13px;background:linear-gradient(135deg,#e0f6e7,#fff1d8);display:flex;justify-content:center;align-items:center;font-size:52px;margin-bottom:12px}
+.card h3{margin:7px 0}
+.muted{color:#65776a;font-size:13px;line-height:1.6}
+.actions{display:flex;gap:7px;margin-top:14px;flex-wrap:wrap}
+.actions button{font-size:13px;padding:10px}
+section{display:none}
+section.active{display:block}
+nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #dce8dd;display:flex;justify-content:center;z-index:10}
+nav button{background:white;color:#62766a;border-radius:0;padding:12px 6px;flex:1;max-width:180px;font-size:12px}
+nav button.active{color:#0a8954;background:#edfaef;font-weight:bold}
+.map{height:370px;background:#e4f0df;border:2px solid #c8dec5;border-radius:20px;position:relative;overflow:hidden}
+.road{position:absolute;background:#fff9e8;border:2px solid #d7d8c5;transform:rotate(-20deg);width:130%;height:55px;left:-10%;top:44%}
+.road.two{transform:rotate(45deg);top:50%;height:36px}
+.pin{position:absolute;background:white;color:#16754d;border:2px solid #2aaa75;border-radius:22px;font-size:12px;padding:9px;box-shadow:0 3px 8px #0002}
+.notice{background:#fff7e9;border-radius:12px;padding:12px;color:#80530c;margin:12px 0;font-size:13px}
+.stat{font-size:30px;font-weight:bold;color:#19875d}
+h2{margin:14px 0}
+@media(min-width:800px){.hero{padding:38px}.hero h1{font-size:38px}nav button{font-size:14px}}
+</style>
+</head>
+<body>
+<header>
+ <div class="logo">🌿 XANH24 <span style="color:#f19a27">Maps for Life</span></div>
+ <div class="tag">DEMO OFFLINE</div>
+</header>
+<main>
+<section id="home" class="active">
+ <div class="hero">
+  <div>KHÁM PHÁ · TRẢI NGHIỆM · KẾT NỐI</div>
+  <h1>Khám phá thành phố theo cách của bạn</h1>
+  <p>Chọn cảm xúc, tìm địa điểm, mở hộp mù và lưu lại hành trình.</p>
+  <button class="secondary" onclick="go('discover')">Bắt đầu khám phá →</button>
+ </div>
+ <div class="grid">
+  <div class="card" onclick="go('discover')"><div class="illustration">🧭</div><h3>Khám phá</h3><p class="muted">Tìm địa điểm theo sở thích</p></div>
+  <div class="card" onclick="go('random')"><div class="illustration">🎁</div><h3>Hộp mù</h3><p class="muted">Để bất ngờ quyết định điểm đến</p></div>
+  <div class="card" onclick="go('vouchers')"><div class="illustration">🎟️</div><h3>Voucher</h3><p class="muted">Nhận ưu đãi mô phỏng</p></div>
+  <div class="card" onclick="go('map')"><div class="illustration">🗺️</div><h3>Bản đồ</h3><p class="muted">Sơ đồ vị trí minh họa</p></div>
+ </div>
+</section>
+
+<section id="discover">
+ <h2>🧭 Khám phá địa điểm</h2>
+ <p class="muted">Tìm kiếm và lọc các địa điểm mẫu quanh Cầu Giấy.</p>
+ <div class="toolbar">
+  <input id="search" placeholder="Tìm tên địa điểm..." oninput="renderPlaces()">
+  <button onclick="setMood('all')">Tất cả</button>
+  <button class="light" onclick="setMood('chill')">Thư giãn</button>
+  <button class="light" onclick="setMood('food')">Ăn uống</button>
+  <button class="light" onclick="setMood('explore')">Khám phá</button>
+ </div>
+ <div id="places" class="grid"></div>
+</section>
+
+<section id="random">
+ <h2>🎁 Hộp mù trải nghiệm</h2>
+ <div class="card">
+  <div class="illustration">🎲</div>
+  <h3>Hôm nay bạn muốn đi đâu?</h3>
+  <p id="remaining" class="muted"></p>
+  <button onclick="spin()">Mở hộp mù</button>
+  <div id="random-result" style="margin-top:16px"></div>
+ </div>
+</section>
+
+<section id="map">
+ <h2>🗺️ Bản đồ khám phá</h2>
+ <div class="notice">Sơ đồ minh họa, không phải bản đồ GPS hoặc vị trí chính xác.</div>
+ <div class="map">
+  <div class="road"></div><div class="road two"></div>
+  <button class="pin" style="top:15%;left:12%" onclick="detail(1)">🌳 Công viên</button>
+  <button class="pin" style="top:30%;left:55%" onclick="detail(2)">☕ Cà phê</button>
+  <button class="pin" style="top:65%;left:20%" onclick="detail(3)">🍜 Ẩm thực</button>
+  <button class="pin" style="top:73%;left:62%" onclick="detail(4)">📷 Check-in</button>
+ </div>
+ <div id="map-detail" style="margin-top:15px"></div>
+</section>
+
+<section id="vouchers">
+ <h2>🎟️ Voucher Demo</h2>
+ <div class="notice">Voucher chỉ là dữ liệu mô phỏng, không có giá trị thanh toán.</div>
+ <div id="voucher-list" class="grid"></div>
+</section>
+
+<section id="profile">
+ <h2>👤 Cá nhân</h2>
+ <div class="grid">
+  <div class="card"><div class="muted">Địa điểm đã lưu</div><div class="stat" id="save-count">0</div></div>
+  <div class="card"><div class="muted">Voucher đã nhận</div><div class="stat" id="voucher-count">0</div></div>
+  <div class="card"><div class="muted">Hộp mù đã mở hôm nay</div><div class="stat" id="spin-count">0</div></div>
+ </div>
+ <h3>❤️ Danh sách đã lưu</h3>
+ <div id="saved-list" class="grid"></div>
+ <div class="toolbar"><button class="secondary" onclick="resetDemo()">Đặt lại dữ liệu Demo</button></div>
+</section>
+</main>
+<nav>
+ <button data-page="home" class="active" onclick="go('home')">🏠<div>Trang chủ</div></button>
+ <button data-page="discover" onclick="go('discover')">🧭<div>Khám phá</div></button>
+ <button data-page="random" onclick="go('random')">🎁<div>Hộp mù</div></button>
+ <button data-page="map" onclick="go('map')">🗺️<div>Bản đồ</div></button>
+ <button data-page="vouchers" onclick="go('vouchers')">🎟️<div>Voucher</div></button>
+ <button data-page="profile" onclick="go('profile')">👤<div>Cá nhân</div></button>
+</nav>
+<script>
+const DATA=[
+{id:1,name:"Công viên Cầu Giấy",mood:"chill",icon:"🌳",desc:"Không gian xanh, đi dạo và thư giãn"},
+{id:2,name:"Cà phê cuối tuần (Demo)",mood:"chill",icon:"☕",desc:"Góc ngồi yên tĩnh, trò chuyện cùng bạn bè"},
+{id:3,name:"Phố ẩm thực (Demo)",mood:"food",icon:"🍜",desc:"Gợi ý khám phá hương vị địa phương"},
+{id:4,name:"Góc check-in (Demo)",mood:"explore",icon:"📷",desc:"Một điểm đến thú vị cho người thích chụp ảnh"},
+{id:5,name:"Không gian đọc sách (Demo)",mood:"chill",icon:"📚",desc:"Dành cho buổi chiều nhẹ nhàng"},
+{id:6,name:"Trải nghiệm cuối tuần (Demo)",mood:"explore",icon:"🎨",desc:"Khám phá những hoạt động mới"}
+];
+const VOUCHERS=[
+{id:101,title:"Giảm 15% đồ uống (Demo)",icon:"🥤"},
+{id:102,title:"Ưu đãi món ăn (Demo)",icon:"🍲"},
+{id:103,title:"Quà trải nghiệm (Demo)",icon:"🎁"}
+];
+let mood="all";
+function read(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}}
+function save(k,v){localStorage.setItem(k,JSON.stringify(v))}
+let saved=read("saved",[]);
+let claimed=read("claimed",[]);
+let day=new Date().toLocaleDateString("en-CA");
+let spins=read("spins",{day:"",count:0,last:0});
+if(spins.day!==day){spins={day,count:0,last:0};save("spins",spins)}
+function go(id){
+ document.querySelectorAll("section").forEach(e=>e.classList.toggle("active",e.id===id));
+ document.querySelectorAll("nav button").forEach(e=>e.classList.toggle("active",e.dataset.page===id));
+ render();window.scrollTo(0,0)
+}
+function setMood(v){mood=v;renderPlaces()}
+function detail(id){
+ let p=DATA.find(x=>x.id===id);
+ document.getElementById("map-detail").innerHTML=placeCard(p);
+}
+function placeCard(p){
+ return `<div class="card"><div class="illustration">${p.icon}</div>
+ <h3>${p.name}</h3><p class="muted">${p.desc}</p>
+ <div class="actions"><button onclick="toggleSave(${p.id})">${saved.includes(p.id)?"♥ Đã lưu":"♡ Lưu địa điểm"}</button>
+ <button class="secondary" onclick="go('map');detail(${p.id})">Xem sơ đồ</button></div></div>`
+}
+function renderPlaces(){
+ const q=document.getElementById("search").value.trim().toLowerCase();
+ const list=DATA.filter(p=>(mood==="all"||p.mood===mood)&&p.name.toLowerCase().includes(q));
+ document.getElementById("places").innerHTML=list.length?list.map(placeCard).join(""):"<p>Không tìm thấy địa điểm phù hợp.</p>"
+}
+function toggleSave(id){
+ saved=saved.includes(id)?saved.filter(x=>x!==id):[...saved,id];
+ save("saved",saved);render()
+}
+function spin(){
+ const now=Date.now();
+ if(spins.count>=10){alert("Đã hết 10 lượt Demo hôm nay.");return}
+ if(now-spins.last<3000){alert("Chờ ít nhất 3 giây giữa hai lượt.");return}
+ const p=DATA[Math.floor(Math.random()*DATA.length)];
+ spins.count++;spins.last=now;save("spins",spins);
+ document.getElementById("random-result").innerHTML=placeCard(p);
+ renderRemaining()
+}
+function renderRemaining(){
+ document.getElementById("remaining").textContent=`Còn ${10-spins.count}/10 lượt hôm nay`;
+ document.getElementById("spin-count").textContent=spins.count
+}
+function claim(id){
+ if(!claimed.includes(id)){claimed.push(id);save("claimed",claimed)}
+ render()
+}
+function renderVouchers(){
+ document.getElementById("voucher-list").innerHTML=VOUCHERS.map(v=>
+ `<div class="card"><div class="illustration">${v.icon}</div>
+ <h3>${v.title}</h3><p class="muted">Ưu đãi mô phỏng</p>
+ <button onclick="claim(${v.id})" ${claimed.includes(v.id)?"disabled":""}>
+ ${claimed.includes(v.id)?"✓ Đã nhận":"Nhận voucher"}</button></div>`).join("")
+}
+function renderProfile(){
+ document.getElementById("save-count").textContent=saved.length;
+ document.getElementById("voucher-count").textContent=claimed.length;
+ document.getElementById("saved-list").innerHTML=saved.length?
+ DATA.filter(p=>saved.includes(p.id)).map(placeCard).join(""):"<p class='muted'>Chưa lưu địa điểm nào.</p>"
+}
+function resetDemo(){
+ if(!confirm("Đặt lại toàn bộ dữ liệu Demo trên thiết bị?"))return;
+ saved=[];claimed=[];spins={day,count:0,last:0};
+ ["saved","claimed","spins"].forEach(k=>localStorage.removeItem(k));
+ document.getElementById("random-result").innerHTML="";
+ render()
+}
+function render(){renderPlaces();renderVouchers();renderProfile();renderRemaining()}
+render()
+</script>
+</body>
+</html>
